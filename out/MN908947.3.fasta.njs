@@ -6,7 +6,7 @@
   "description": "MN908947.3.fasta",
   "number-of-letters": 29903,
   "number-of-sequences": 1,
-  "last-updated": "2022-09-30T18:26:00",
+  "last-updated": "2022-10-01T11:22:00",
   "number-of-volumes": 1,
   "bytes-total": 44654,
   "bytes-to-cache": 7605,
