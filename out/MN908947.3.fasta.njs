@@ -6,10 +6,10 @@
   "description": "MN908947.3.fasta",
   "number-of-letters": 29903,
   "number-of-sequences": 1,
-  "last-updated": "2022-10-01T12:00:00",
+  "last-updated": "2022-10-01T15:03:00",
   "number-of-volumes": 1,
-  "bytes-total": 44654,
-  "bytes-to-cache": 7605,
+  "bytes-total": 44646,
+  "bytes-to-cache": 7597,
   "files": [
     "MN908947.3.fasta.ndb",
     "MN908947.3.fasta.nhr",
