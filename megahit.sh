@@ -1,5 +1,7 @@
 # Install deps
+sudo yum install -y https://repo.ius.io/ius-release-el7.rpm
 sudo yum update -y
+sudo yum install -y python36u python36u-libs python36u-devel python36u-pip
 sudo amazon-linux-extras install -y epel
 
 # Install conda
@@ -11,7 +13,11 @@ rm -rf Miniconda3-py39_4.12.0-Linux-x86_64.sh
 
 # Install Megahit
 # https://github.com/voutcn/megahit
-conda install -y -c bioconda megahit
+conda create --name megahit python=3.6 pip -y
+conda init bash
+source /home/ec2-user/.bashrc
+conda activate megahit
+conda install -y -c bioconda megahit=1.1.3
 
 # Install SRA tools
 wget https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/3.0.0/setup-yum.sh
@@ -35,7 +41,7 @@ if ! [ -f "SRR10971381_1.fastq" ]; then
 fi
 
 # Run megahit assembly
-/home/ec2-user/miniconda/bin/megahit -1 SRR10971381_1.fastq -2 SRR10971381_2.fastq -o out |& tee output.txt
+megahit -1 SRR10971381_1.fastq -2 SRR10971381_2.fastq -o out |& tee output.txt
 
 # Zip log & output.
 zip -r9 out.zip out/final.contigs.fa output.txt
