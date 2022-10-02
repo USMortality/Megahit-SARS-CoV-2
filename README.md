@@ -44,9 +44,11 @@ screen
 ./megahit.sh
 ```
 
-
 scp megahit:/home/ec2-user/out.zip .
-
 
 Vaccine Sequence:
 https://github.com/NAalytics/Assemblies-of-putative-SARS-CoV2-spike-encoding-mRNA-sequences-for-vaccines-BNT-162b2-and-mRNA-1273/blob/main/Assemblies%20of%20putative%20SARS-CoV2-spike-encoding%20mRNA%20sequences%20for%20vaccines%20BNT-162b2%20and%20mRNA-1273.docx.pdf
+
+# Match Primer argainst target
+makeblastdb -in bnt162b2.fasta -dbtype nucl
+blastn -task blastn-short -query primer.fasta -db bnt162b2.fasta > primer.log
