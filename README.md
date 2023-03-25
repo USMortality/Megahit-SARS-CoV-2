@@ -46,3 +46,16 @@ screen
 
 
 scp megahit:/home/ec2-user/out.zip .
+
+
+# Compare the produced sequence to the original MN908947.3 Wuhan-Hu-1 Isolate
+```
+# Make Blast DB of target sequence
+makeblastdb -in MN908947.3.fasta -dbtype nucl  
+
+# Invert the sequence (end to front)
+seqtk seq -r k141_13590.fasta > k141_13590r.fasta
+
+# Compare thes genomes
+blastn -query k141_13590r.fasta -db MN908947.3.fasta -evalue 1 -task megablast -outfmt 6 > k141_13590r_MN908947.3.crunch
+```
