@@ -47,6 +47,18 @@ screen
 
 scp megahit:/home/ec2-user/out.zip .
 
+# Download original genomes
+
+```
+curl 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&rettype=fasta&id=MN908947.1'>MN908947.1.fasta
+curl 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&rettype=fasta&id=MN908947.2'>MN908947.2.fasta
+curl 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&rettype=fasta&id=MN908947.3'>MN908947.3.fasta
+```
+
+# Show differences
+```
+cat MN908947.1.fasta MN908947.3.fasta|mafft -|awk '{printf(/^>/?"\n%s\n":"%s"),$0}'|grep .>temp.aln;paste <(sed -n 2p temp.aln|grep -o .) <(sed -n 4p temp.aln|grep -o .)|awk '$1!=$2{print NR,$1,$2}'
+```
 
 # Compare the produced sequence to the original MN908947.3 Wuhan-Hu-1 Isolate
 ```
