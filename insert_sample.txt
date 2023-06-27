@@ -1,0 +1,8 @@
+
+
+
+                 👇 Insert: ATT was simply inserted to make this read match!
+Read 1:     CTG ATT AAA GGT TTA TAC CTT CCC ...
+SARS-CoV-2:     ATT AAA GGT TTA TAC CTT CCC ...
+
+
