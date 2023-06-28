@@ -1,21 +1,21 @@
 import * as fs from 'fs'
 import seedrandom from 'seedrandom'
-import cliProgress from 'cli-progress'
+import { SingleBar, Presets } from 'cli-progress'
 
-const bar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic)
+const bar = new SingleBar({}, Presets.shades_classic)
 
 // Config
-const N_LEN = 1000
+const N_LEN = 30
 const ALPHABET = ['A', 'T', 'C', 'G']
-const READ_LEN_MIN = 100
-const READ_LEN_MAX = 150
-const N_READS = 10000
-const N_ORGANISMS = 2
-const GENOME_ID = 'XX000001'
+const READ_LEN_MIN = 5
+const READ_LEN_MAX = 10
+const N_READS = 100
+const N_ORGANISMS = 3
+const GENOME_ID = 'XX000000'
 const GENOME_NAME = 'Random Test Genome'
-const SRR_ID = 'SRR00000001'
+const SRR_ID = 'SRR00000000'
 
-const ERR_RATE = 0.05 // 1 in 500
+const ERR_RATE = 0.2 // 1 in 500
 const P_GENOME_READS = 0.5
 
 // Use a seeded random, to ensure the genome remains identical.
@@ -83,15 +83,13 @@ const generateReads = (genome: string, depth: number, n_reads: number) => {
     for (let i = 0; i < n_reads; i++) {
       const result: string[] = []
       let read = ''
-      while (read.length <= READ_LEN_MIN) read = generateRead(genome)
+      while (read.length < READ_LEN_MIN) read = generateRead(genome)
       result.push(`@SRR00000000.1 ${i + 1} length=${read.length}`)
       result.push(read)
       result.push(`+SRR00000000.1 ${i + 1} length=${read.length}`)
       result.push(repeat('I', read.length))
 
-      fs.appendFileSync(file, result.join('\n') + '\n', err => {
-        if (err) console.error(err)
-      })
+      fs.appendFileSync(file, result.join('\n') + '\n')
       bar.update((d + 1) * (i + 1))
     }
   }
