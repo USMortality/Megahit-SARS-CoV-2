@@ -4,14 +4,17 @@
   "description": "",
   "main": "genome.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "generate": "./node_modules/@digitak/esrun/bin.js genome.ts",
+    "align": "sh align.sh"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@digitak/esrun": "^3.2.24",
     "@types/node": "^20.3.2"
   },
   "dependencies": {
+    "cli-progress": "^3.12.0",
     "seedrandom": "^3.0.5"
   }
 }

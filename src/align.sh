@@ -6,7 +6,6 @@ N_THREADS=($(nproc --all) -1)
 # Align SRR against Viral Genome
 # $1: Reads, $2: Target Genome
 function align() {
-  mkdir -p "./out"
   cd "./out"
 
   echo "Indexing target genome.."

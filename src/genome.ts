@@ -1,38 +1,47 @@
 import * as fs from 'fs'
 import seedrandom from 'seedrandom'
+import cliProgress from 'cli-progress'
+
+const bar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic)
 
 // Config
-const N_LEN = 200
+const N_LEN = 1000
 const ALPHABET = ['A', 'T', 'C', 'G']
-const READ_LEN_MIN = 120
+const READ_LEN_MIN = 100
 const READ_LEN_MAX = 150
-const N_READS = 100
-const N_DEPTH = 10
+const N_READS = 10000
+const N_ORGANISMS = 2
 const GENOME_ID = 'XX000001'
 const GENOME_NAME = 'Random Test Genome'
 const SRR_ID = 'SRR00000001'
 
-const ERR_RATE = 0.01
+const ERR_RATE = 0.05 // 1 in 500
+const P_GENOME_READS = 0.5
 
 // Use a seeded random, to ensure the genome remains identical.
 const rnd = seedrandom(GENOME_ID)
 
 const replaceAt = (str: string, index: number, replacement: string) => {
-  return str.substring(0, index) + replacement + str.substring(index + replacement.length);
+  return str.substring(0, index) + replacement + str.substring(index + replacement.length)
+}
+
+const randomSequence = (len: number, isSticky = false) => {
+  let seq = ''
+  for (let i = 0; i < len; i++) {
+    const rnd_idx = Math.floor((isSticky ? rnd() : Math.random()) * 4)
+    seq += ALPHABET[rnd_idx]
+  }
+  return seq
 }
 
 const generateGenome = () => {
   let result = [`>${GENOME_ID} ${GENOME_NAME}`]
-  let genome = ''
-  for (let i = 0; i < N_LEN; i++) {
-    const rnd_idx = Math.floor(rnd() * 4)
-    genome += ALPHABET[rnd_idx]
-  }
-  result.push(genome)
+  result.push(randomSequence(N_LEN, true))
   return result
 }
 
 const hasError = () => Math.random() * (1 / ERR_RATE) < 1
+const isGenomeRead = () => Math.random() * (1 / P_GENOME_READS) < 1
 
 const maybeScrambleRead = (read: string) => {
   let new_read = read
@@ -47,10 +56,14 @@ const maybeScrambleRead = (read: string) => {
 const generateRead = (genome: string) => {
   const read_var = READ_LEN_MAX - READ_LEN_MIN
   const read_len = READ_LEN_MIN + Math.floor(Math.random() * read_var)
-  const idx_start = Math.floor(Math.random() * genome.length)
-  const idx_end = idx_start + read_len
-  const read = genome.substring(idx_start, idx_end)
-  return maybeScrambleRead(read)
+  if (isGenomeRead()) { // Real Genome Read
+    const idx_start = Math.floor(Math.random() * genome.length)
+    const idx_end = idx_start + read_len
+    const read = genome.substring(idx_start, idx_end)
+    return maybeScrambleRead(read)
+  } else { // Random Noise Read
+    return randomSequence(read_len)
+  }
 }
 
 const repeat = (x, times: number) => {
@@ -59,31 +72,41 @@ const repeat = (x, times: number) => {
   return result
 }
 
-const generateReads = (genome: string, n_reads: number, depth: number) => {
-  const reads: string[] = []
-  for (let j = 0; j < depth; j++) {
+const generateReads = (genome: string, depth: number, n_reads: number) => {
+  const file = `./out/${SRR_ID}.fastq`
+  // Remove file if exists.
+  fs.unlink(file, () => { })
+
+  bar.start(depth * n_reads, 0);
+
+  for (let d = 0; d < depth; d++) {
     for (let i = 0; i < n_reads; i++) {
+      const result: string[] = []
       let read = ''
       while (read.length <= READ_LEN_MIN) read = generateRead(genome)
-      reads.push(`@SRR00000000.1 ${i + 1} length=${read.length}`)
-      reads.push(read)
-      reads.push(`+SRR00000000.1 ${i + 1} length=${read.length}`)
-      reads.push(repeat('I', read.length))
+      result.push(`@SRR00000000.1 ${i + 1} length=${read.length}`)
+      result.push(read)
+      result.push(`+SRR00000000.1 ${i + 1} length=${read.length}`)
+      result.push(repeat('I', read.length))
+
+      fs.appendFileSync(file, result.join('\n') + '\n', err => {
+        if (err) console.error(err)
+      })
+      bar.update((d + 1) * (i + 1))
     }
   }
-  return reads
+  bar.stop()
 }
 
 console.log('Generating new genome.')
 const genome = generateGenome()
-console.log('Generating reads for genome.')
-const reads = generateReads(genome[1], N_READS, N_DEPTH)
-
-console.log('Saving...')
+console.log('Saving genome...')
 fs.writeFile(`./out/${GENOME_ID}.fa`, genome.join('\n'), err => {
-  if (err) console.error(err);
+  if (err) console.error(err)
 })
-fs.writeFile(`./out/${SRR_ID}.fastq`, reads.join('\n'), err => {
-  if (err) console.error(err);
-})
-console.log('Done!')
+console.log('Genome saved.')
+
+console.log('Generating reads for genome...')
+generateReads(genome[1], N_ORGANISMS, N_READS)
+
+console.log('Finished!')
