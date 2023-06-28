@@ -23,8 +23,11 @@ mkdir -p "./out"
   if ! test -f "${2}.fa"; then
     echo "Downloading target genome.."
     curl "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&rettype=fasta&id=${2}" >"${2}.fa"
-    bowtie2-build --threads $N_THREADS "${2}.fa" "${2}"
   fi
+
+  echo "Indexing target genome.."
+  bowtie2-build --threads $N_THREADS "${2}.fa" "${2}"
+
   echo "Aligning reads to target genome.."
   target="${1}_${2}.bam"
 

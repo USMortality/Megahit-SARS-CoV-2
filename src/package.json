@@ -1,0 +1,17 @@
+{
+  "name": "genome",
+  "version": "1.0.0",
+  "description": "",
+  "main": "genome.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.3.2"
+  },
+  "dependencies": {
+    "seedrandom": "^3.0.5"
+  }
+}
