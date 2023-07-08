@@ -2,7 +2,7 @@
 
 # Dependencies:
 # brew install bowtie2 anaconda sratoolkit
-# conda install -c bioconda parallel-fastq-dump
+# conda install -c bioconda parallel-fastq-dump minimap2
 
 # Options:
 N_THREADS=$(nproc --all)
@@ -15,7 +15,7 @@ function align_bwa() {
     bwa index ${2}.fa
   fi
 
-  # echo "Aligning reads to target genome.."
+  echo "Aligning reads to target genome.."
   if test -f "${1}_2.${4}"; then
     bwa mem -t $N_THREADS ${2}.fa ${1}_1.${4} ${1}_2.${4} | samtools view -b -F 4 | samtools sort -@3 - >$TARGET.bam
   else
@@ -31,11 +31,23 @@ function align_bowtie2() {
     bowtie2-build --threads $N_THREADS "${2}.fa" "${2}"
   fi
 
-  # echo "Aligning reads to target genome.."
+  echo "Aligning reads to target genome.."
   if test -f "${1}_2.${4}"; then
     bowtie2 -p $N_THREADS -x "${2}" -1 "${1}_1.${4}" -2 "${1}_2.${4}" --no-unal | samtools sort -@$((N_THREADS - 1)) - >$TARGET.bam
   else
     bowtie2 -p $N_THREADS -x "${2}" -U "${1}_1.${4}" --no-unal | samtools sort -@$((N_THREADS - 1)) - >$TARGET.bam
+  fi
+}
+
+# Align SRR against Viral Genome with minimap2
+function align_minimap2() {
+  echo "Aligning with ${3}.."
+
+  echo "Aligning reads to target genome.."
+  if test -f "${1}_2.${4}"; then
+    minimap2 "${2}.fa" "${1}_1.${4}" "${1}_2.${4}" -a --sam-hit-only | samtools sort -@$((N_THREADS - 1)) - >$TARGET.bam
+  else
+    minimap2 "${2}.fa" "${1}_1.${4}" -a --sam-hit-only | samtools sort -@$((N_THREADS - 1)) - >$TARGET.bam
   fi
 }
 
@@ -131,9 +143,10 @@ fi
 case $ALIGNER in
 bwa) align_bwa $SRA $GENOME $ALIGNER $EXT ;;
 bowtie2) align_bowtie2 $SRA $GENOME $ALIGNER $EXT ;;
+minimap2) align_minimap2 $SRA $GENOME $ALIGNER $EXT ;;
 esac
 
 samtools index $TARGET.bam
-COV_PCT=$(samtools coverage ${SRA}_${GENOME}_${ALIGNER}.bam -H | cut -f6)
+COV_PCT=$(samtools coverage ${TARGET}.bam -H | cut -f6)
 echo "Coverage: ${COV_PCT}%"
 echo "Finished!"

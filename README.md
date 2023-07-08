@@ -71,3 +71,20 @@ seqtk seq -r k141_13590.fasta > k141_13590r.fasta
 # Compare thes genomes
 blastn -query k141_13590r.fasta -db MN908947.3.fasta -evalue 1 -task megablast -outfmt 6 > k141_13590r_MN908947.3.crunch
 ```
+
+
+# Random Genome and Reads Generator
+
+This script generates a random genome and short sequence reads based upon.
+
+# Installation
+Make sure to have a NodeJS installation in your path, then:
+```
+npm i
+```
+
+# Usage
+- Generate genome/reads: `npm run generate`
+- Align reads: `npm run align SRR00000001 XX000001`
+
+You can configure settings in `./genome.ts`
