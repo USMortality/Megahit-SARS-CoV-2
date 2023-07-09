@@ -7,12 +7,13 @@ const bar = new SingleBar({}, Presets.shades_classic)
 
 // Config
 const N_LEN = 29903
-const ALPHABET = ['A', 'T', 'C', 'G']
-const READ_LEN = 150
+const ALPHABET = ['A', 'C', 'G', 'T']
+const REV_ALPHABET = ['T', 'G', 'C', 'A']
+const MIN_LEN = 50
+const MAX_LEN = 150
+const READ_LEN = MAX_LEN - MIN_LEN // 100
 
 const N_ORGANISMS = 100
-
-const N_READS = 100
 
 const GENOME_ID = 'XX000000'
 const GENOME_NAME = 'Random Test Genome'
@@ -98,6 +99,12 @@ const replicateString = (str: string, times: number): string[] => {
   return result
 }
 
+const reverseComplement = (str: string): string => {
+  const result: string[] = []
+  for (const s of str) result.push(REV_ALPHABET[ALPHABET.indexOf(s)])
+  return result.join('')
+}
+
 const generateReads = async (genome: string) => {
   const file1 = `./out/${SRA_ID}_1.fastq`
   const file2 = `./out/${SRA_ID}_2.fastq`
@@ -111,22 +118,24 @@ const generateReads = async (genome: string) => {
   bar.start(fragmentedGenomes.length, 0);
 
   for (let i = 0; i < fragmentedGenomes.length; i++) {
+    const target = fragmentedGenomes[i]
+    if (target.length < MIN_LEN || target.length > MAX_LEN) continue
     // Forward Read
-    const read1 = maybeScrambleRead(fragmentedGenomes[i])
+    const read1 = maybeScrambleRead(target)
     const result1: string[] = []
-    result1.push(`@${SRA_ID} ${i + 1} length=${read1.length}`)
+    result1.push(`@${SRA_ID}_0:0:0_1:0:0_${i + 1}/1`)
     result1.push(read1)
-    result1.push(`+${SRA_ID} ${i + 1} length=${read1.length}`)
-    result1.push(repeat('I', read1.length))
+    result1.push(`+`)
+    result1.push(repeat('2', read1.length))
     await fs.appendFile(file1, result1.join('\n') + '\n')
 
     // Forward Read
-    const read2 = maybeScrambleRead(reverseString(fragmentedGenomes[i]))
+    const read2 = maybeScrambleRead(reverseString(target))
     const result2: string[] = []
-    result2.push(`@${SRA_ID} ${i + 1} length=${read2.length}`)
-    result2.push(read2)
-    result2.push(`+${SRA_ID} ${i + 1} length=${read2.length}`)
-    result2.push(repeat('I', read2.length))
+    result2.push(`@${SRA_ID}_0:0:0_1:0:0_${i + 1}/2`)
+    result2.push(reverseComplement(read2))
+    result2.push(`+`)
+    result2.push(repeat('2', read2.length))
     await fs.appendFile(file2, result2.join('\n') + '\n')
 
     bar.update(i + 1)
