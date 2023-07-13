@@ -33,9 +33,9 @@ function align_bowtie2() {
 
   echo "Aligning reads to target genome.."
   if test -f "${1}_2.${4}"; then
-    bowtie2 -p $N_THREADS -x "${2}" -1 "${1}_1.${4}" -2 "${1}_2.${4}" --no-unal | samtools sort -@$((N_THREADS - 1)) - >$TARGET.bam
+    bowtie2 -r -p $N_THREADS -x "${2}" -1 "${1}_1.${4}" -2 "${1}_2.${4}" --no-unal | samtools sort -@$((N_THREADS - 1)) - >$TARGET.bam
   else
-    bowtie2 -p $N_THREADS -x "${2}" -U "${1}_1.${4}" --no-unal | samtools sort -@$((N_THREADS - 1)) - >$TARGET.bam
+    bowtie2 -r -p $N_THREADS -x "${2}" -U "${1}_1.${4}" --no-unal | samtools sort -@$((N_THREADS - 1)) - >$TARGET.bam
   fi
 }
 

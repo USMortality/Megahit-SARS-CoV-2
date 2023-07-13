@@ -2,44 +2,38 @@ import * as fs from 'fs/promises'
 import seedrandom from 'seedrandom'
 import { SingleBar, Presets } from 'cli-progress'
 import parseArgs from 'minimist'
+import {
+  ALPHABET,
+  fragmentStr, randomSequence, repeat, reverseComplement, reverseString
+} from './utils'
 
 const bar = new SingleBar({}, Presets.shades_classic)
+const args = parseArgs(process.argv.slice(2))
+
+if (!args.s && !args.sra) throw new Error('must specify SRA via -s or --sra')
+const SRA_ID = args.s
+const GENOME_ID = args.g || 'XX' + Math.round(Math.random() * 1000000)
 
 // Config
 const N_LEN = 29903
-const ALPHABET = ['A', 'C', 'G', 'T']
-const REV_ALPHABET = ['T', 'G', 'C', 'A']
 const MIN_LEN = 50
 const MAX_LEN = 150
 const READ_LEN = MAX_LEN - MIN_LEN // 100
-
-const N_ORGANISMS = 100
-
-const GENOME_ID = 'XX000000'
-const GENOME_NAME = 'Random Test Genome'
-const SRA_ID = 'SRR00000000'
-
+const N_ORGANISMS = 1000
+const GENOME_NAME = `Random Test Genome: ${GENOME_ID}`
 const ERR_RATE = 0.01
 
 // Use a seeded random, to ensure the genome remains identical.
 const rnd = seedrandom(GENOME_ID)
 
 const replaceAt = (str: string, index: number, replacement: string) => {
-  return str.substring(0, index) + replacement + str.substring(index + replacement.length)
-}
-
-const randomSequence = (len: number, isSticky = false) => {
-  let seq = ''
-  for (let i = 0; i < len; i++) {
-    const rnd_idx = Math.floor((isSticky ? rnd() : Math.random()) * 4)
-    seq += ALPHABET[rnd_idx]
-  }
-  return seq
+  return str.substring(0, index) + replacement +
+    str.substring(index + replacement.length)
 }
 
 const generateGenome = () => {
   let result = [`>${GENOME_ID} ${GENOME_NAME}`]
-  result.push(randomSequence(N_LEN, true))
+  result.push(randomSequence(N_LEN, rnd()))
   return result
 }
 
@@ -55,54 +49,10 @@ const maybeScrambleRead = (read: string) => {
   return new_read
 }
 
-const getAverageStrLen = (str: string[]) => {
-  let result = 0
-  for (const s of str) result += s.length
-  return Math.floor(result / str.length)
-}
-
-const splitStr = (str: string): string[] => {
-  const randomIndex = Math.floor(Math.random() * str.length)
-  return [str.slice(0, randomIndex), str.slice(randomIndex)]
-}
-
-const fragmentStr = (str: string[], target_length: number): string[] => {
-  if (getAverageStrLen(str) <= target_length) return str
-
-  const result: string[] = []
-  // split each piece in two
-  for (const s of str) splitStr(s).forEach((el: string) => {
-    if (el.length > 0) result.push(el)
-  })
-
-  const len = getAverageStrLen(result)
-  if (len > target_length) return fragmentStr(result, target_length)
-  else return result
-}
-
-const repeat = (x, times: number) => {
-  let result = ''
-  for (let i = 0; i < times; i++) result += x
-  return result
-}
-
-const reverseString = (str) => {
-  let newStr = ""
-  for (let i = str.length - 1; i >= 0; i--) newStr += str[i]
-  return newStr
-}
-reverseString('hello');
-
 const replicateString = (str: string, times: number): string[] => {
   const result: string[] = []
   for (let i = 0; i < times; i++) result.push(str)
   return result
-}
-
-const reverseComplement = (str: string): string => {
-  const result: string[] = []
-  for (const s of str) result.push(REV_ALPHABET[ALPHABET.indexOf(s)])
-  return result.join('')
 }
 
 const generateReads = async (genome: string) => {
@@ -126,7 +76,7 @@ const generateReads = async (genome: string) => {
     result1.push(`@${SRA_ID}_0:0:0_1:0:0_${i + 1}/1`)
     result1.push(read1)
     result1.push(`+`)
-    result1.push(repeat('2', read1.length))
+    result1.push(repeat('I', read1.length))
     await fs.appendFile(file1, result1.join('\n') + '\n')
 
     // Forward Read
@@ -135,15 +85,13 @@ const generateReads = async (genome: string) => {
     result2.push(`@${SRA_ID}_0:0:0_1:0:0_${i + 1}/2`)
     result2.push(reverseComplement(read2))
     result2.push(`+`)
-    result2.push(repeat('2', read2.length))
+    result2.push(repeat('I', read2.length))
     await fs.appendFile(file2, result2.join('\n') + '\n')
 
     bar.update(i + 1)
   }
   bar.stop()
 }
-
-const args = parseArgs(process.argv.slice(2))
 
 let genome: string[]
 if (args.g) {
