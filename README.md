@@ -88,3 +88,22 @@ npm i
 - Align reads: `npm run align SRR00000001 XX000001`
 
 You can configure settings in `./genome.ts`
+
+# Common Resp. Pathogens
+- Influenza
+  - A: NC_026431
+  - B: NC_002205
+  - C: NC_006306
+  - D: NC_036615
+- Coronavirus
+ - HCoV-NL63: NC_005831
+ - HCoV-229E: NC_002645
+ - HCoV-HKU1: NC_006577
+ - HCoV-OC43: NC_006213
+ - SARS1 (ext.): NC_004718
+ - SARS2: NC_045512 / MN908947.3 
+- RSV: NC_001803
+- Rhinovirus
+  A1: NC_038311
+
+See folder: `reference_genomes`
