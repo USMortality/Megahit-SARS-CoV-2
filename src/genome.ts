@@ -79,7 +79,7 @@ const generateReads = async (genome: string) => {
     result1.push(repeat('I', read1.length))
     await fs.appendFile(file1, result1.join('\n') + '\n')
 
-    // Forward Read
+    // Reverse Read
     const read2 = maybeScrambleRead(reverseString(target))
     const result2: string[] = []
     result2.push(`@${SRA_ID}_0:0:0_1:0:0_${i + 1}/2`)

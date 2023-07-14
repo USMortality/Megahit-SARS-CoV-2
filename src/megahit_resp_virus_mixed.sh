@@ -12,6 +12,8 @@ esrun src/genome.ts -s SRR00006306 -g reference_genomes/NC_006306.fa
 esrun src/genome.ts -s SRR00006577 -g reference_genomes/NC_006577.fa
 esrun src/genome.ts -s SRR00026431 -g reference_genomes/NC_026431.fa
 esrun src/genome.ts -s SRR00036615 -g reference_genomes/NC_036615.fa
+esrun src/genome.ts -s SRR00004718 -g reference_genomes/NC_004718.fa
+esrun src/genome.ts -s SRR00045512 -g reference_genomes/NC_045512.fa
 # esrun src/genome.ts -s SRR00038311 -g reference_genomes/NC_038311.fa
 
 cd out
@@ -38,3 +40,5 @@ blastn -query ../../reference_genomes/NC_006306.fa -db final.contigs.fa -evalue 
 blastn -query ../../reference_genomes/NC_006577.fa -db final.contigs.fa -evalue 1 -task megablast >NC_006577.crunch
 blastn -query ../../reference_genomes/NC_026431.fa -db final.contigs.fa -evalue 1 -task megablast >NC_026431.crunch
 blastn -query ../../reference_genomes/NC_036615.fa -db final.contigs.fa -evalue 1 -task megablast >NC_036615.crunch
+blastn -query ../../reference_genomes/NC_004718.fa -db final.contigs.fa -evalue 1 -task megablast >NC_004718.crunch
+blastn -query ../../reference_genomes/NC_045512.fa -db final.contigs.fa -evalue 1 -task megablast >NC_045512.crunch
