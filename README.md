@@ -103,7 +103,15 @@ You can configure settings in `./genome.ts`
  - SARS1 (ext.): NC_004718
  - SARS2: NC_045512 / MN908947.3 
 - RSV: NC_001803
-- Rhinovirus
-  A1: NC_038311
+- Rhinovirus: NC_038311
+- Adenovirus: NC_044935
+- Parainfluenza: NC_075446
+- Parvovirus: NC_075988
+- Measles virus: OK424761
+- Hantavirus: AF291704
+- Norovirus: AB039774
+- Marburg Virus: AY430365
+- Ebola Virus: AF086833
 
 See folder: `reference_genomes`
+downloaded via: `curl 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&rettype=fasta&id=NC_038311' > NC_038311.fa`
