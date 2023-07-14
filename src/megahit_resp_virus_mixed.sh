@@ -2,19 +2,13 @@
 
 rm -rf out/*
 
-# Generate Reads based on existing 10 resp. viruses:
-esrun src/genome.ts -s SRR00001803 -g reference_genomes/NC_001803.fa
-esrun src/genome.ts -s SRR00002205 -g reference_genomes/NC_002205.fa
-esrun src/genome.ts -s SRR00002645 -g reference_genomes/NC_002645.fa
-esrun src/genome.ts -s SRR00005831 -g reference_genomes/NC_005831.fa
-esrun src/genome.ts -s SRR00006213 -g reference_genomes/NC_006213.fa
-esrun src/genome.ts -s SRR00006306 -g reference_genomes/NC_006306.fa
-esrun src/genome.ts -s SRR00006577 -g reference_genomes/NC_006577.fa
-esrun src/genome.ts -s SRR00026431 -g reference_genomes/NC_026431.fa
-esrun src/genome.ts -s SRR00036615 -g reference_genomes/NC_036615.fa
-esrun src/genome.ts -s SRR00004718 -g reference_genomes/NC_004718.fa
-esrun src/genome.ts -s SRR00045512 -g reference_genomes/NC_045512.fa
-# esrun src/genome.ts -s SRR00038311 -g reference_genomes/NC_038311.fa
+for f in ./reference_genomes/*.fa; do
+  name=$(basename $f .fa)
+  srr="SRR_$name"
+  esrun src/genome.ts -s $srr -g $f -n 1000 -e 0.01
+  # wgsim -N 100000 $f out/${srr}_1.fastq out/${srr}_2.fastq
+  echo "----------------------------------------------------------------------"
+done
 
 cd out
 cat *_1.fastq >SRR00000001_1.fastq
@@ -31,14 +25,10 @@ megahit -1 out/SRR00000001_1.fastq.gz -2 out/SRR00000001_2.fastq.gz -o out/megah
 cd out/megahit
 makeblastdb -in final.contigs.fa -dbtype nucl
 
-blastn -query ../../reference_genomes/NC_001803.fa -db final.contigs.fa -evalue 1 -task megablast >NC_001803.crunch
-blastn -query ../../reference_genomes/NC_002205.fa -db final.contigs.fa -evalue 1 -task megablast >NC_002205.crunch
-blastn -query ../../reference_genomes/NC_002645.fa -db final.contigs.fa -evalue 1 -task megablast >NC_002645.crunch
-blastn -query ../../reference_genomes/NC_005831.fa -db final.contigs.fa -evalue 1 -task megablast >NC_005831.crunch
-blastn -query ../../reference_genomes/NC_006213.fa -db final.contigs.fa -evalue 1 -task megablast >NC_006213.crunch
-blastn -query ../../reference_genomes/NC_006306.fa -db final.contigs.fa -evalue 1 -task megablast >NC_006306.crunch
-blastn -query ../../reference_genomes/NC_006577.fa -db final.contigs.fa -evalue 1 -task megablast >NC_006577.crunch
-blastn -query ../../reference_genomes/NC_026431.fa -db final.contigs.fa -evalue 1 -task megablast >NC_026431.crunch
-blastn -query ../../reference_genomes/NC_036615.fa -db final.contigs.fa -evalue 1 -task megablast >NC_036615.crunch
-blastn -query ../../reference_genomes/NC_004718.fa -db final.contigs.fa -evalue 1 -task megablast >NC_004718.crunch
-blastn -query ../../reference_genomes/NC_045512.fa -db final.contigs.fa -evalue 1 -task megablast >NC_045512.crunch
+echo "Blasting reference genomes against contigs..."
+for f in ../../reference_genomes/*.fa; do
+  name=$(basename $f .fa)
+  blastn -query $f -db final.contigs.fa -evalue 1 -task megablast >$name.crunch
+done
+
+echo "Done"

@@ -103,7 +103,7 @@ You can configure settings in `./genome.ts`
  - SARS1 (ext.): NC_004718
  - SARS2: NC_045512 / MN908947.3 
 - RSV: NC_001803
-- Rhinovirus: NC_038311
+- Rhinovirus: NC_001617
 - Adenovirus: NC_044935
 - Parainfluenza: NC_075446
 - Parvovirus: NC_075988
