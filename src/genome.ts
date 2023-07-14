@@ -19,7 +19,7 @@ const N_LEN = 29903
 const MIN_LEN = 50
 const MAX_LEN = 150
 const READ_LEN = MAX_LEN - MIN_LEN // 100
-const N_ORGANISMS = 1000
+const N_ORGANISMS = 10000
 const GENOME_NAME = `Random Test Genome: ${GENOME_ID}`
 const ERR_RATE = 0.01
 
