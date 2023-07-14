@@ -11,17 +11,17 @@ const bar = new SingleBar({}, Presets.shades_classic)
 const args = parseArgs(process.argv.slice(2))
 
 if (!args.s && !args.sra) throw new Error('must specify SRA via -s or --sra')
-const SRA_ID = args.s
-const GENOME_ID = args.g || 'XX' + Math.round(Math.random() * 1000000)
+const SRA_ID = args.s || args.sra
+const GENOME_ID = args.g || args.genome || 'XX' + Math.round(Math.random() * 1000000)
+const N_ORGANISMS = args.n || 1000
+const ERR_RATE = args.e || args.error || 0.01
 
 // Config
 const N_LEN = 29903
 const MIN_LEN = 50
 const MAX_LEN = 150
 const READ_LEN = MAX_LEN - MIN_LEN // 100
-const N_ORGANISMS = 10000
 const GENOME_NAME = `Random Test Genome: ${GENOME_ID}`
-const ERR_RATE = 0.01
 
 // Use a seeded random, to ensure the genome remains identical.
 const rnd = seedrandom(GENOME_ID)
@@ -106,7 +106,7 @@ if (args.g) {
   console.log('Genome saved.')
 }
 
-console.log('Generating reads for genome...')
+console.log(`Generating randomly fragmented reads: ${SRA_ID} for genome: ${GENOME_ID} (n=${N_ORGANISMS}, e=${ERR_RATE}) ...`)
 generateReads(genome[1])
 
 console.log(`Finished generating Reads: ${SRA_ID} for Genome: ${GENOME_ID}`)
