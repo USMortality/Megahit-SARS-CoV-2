@@ -5,8 +5,7 @@ rm -rf out/*
 esrun ./src/genome.ts -g ./reference_genomes/NC_045512.fa -s SRR00000001
 
 cd out
-
-# wgsim -N 5000 NC_045512.fa SRR00000001_1.fastq SRR00000001_2.fastq
+# wgsim -N 100000 -e 0.01 -1 150 -2 150 -d 500 ../reference_genomes/NC_045512.fa SRR00000001_1.fastq SRR00000001_2.fastq
 
 tar -czf SRR00000001_1.fastq.gz SRR00000001_1.fastq
 tar -czf SRR00000001_2.fastq.gz SRR00000001_2.fastq

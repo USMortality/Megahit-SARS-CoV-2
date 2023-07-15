@@ -30,8 +30,8 @@ function align_assemble {
 for f in ./reference_genomes/*.fa; do
   name=$(basename $f .fa)
   srr="SRR_$name"
-  # esrun src/genome.ts -s $srr -g $f -n 1000 -e 0.01
-  wgsim -N 100000 $f out/${srr}_1.fastq out/${srr}_2.fastq
+  esrun src/genome.ts -s $srr -g $f -n 1000 -e 0.01
+  # wgsim -N 100000 $f out/${srr}_1.fastq out/${srr}_2.fastq
   align_assemble $srr $name
   echo "----------------------------------------------------------------------"
 done
