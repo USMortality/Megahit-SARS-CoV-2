@@ -89,29 +89,34 @@ npm i
 
 You can configure settings in `./genome.ts`
 
-# Common Resp. Pathogens
-- Influenza
-  - A: NC_026431
-  - B: NC_002205
-  - C: NC_006306
-  - D: NC_036615
-- Coronavirus
- - HCoV-NL63: NC_005831
- - HCoV-229E: NC_002645
- - HCoV-HKU1: NC_006577
- - HCoV-OC43: NC_006213
- - SARS1 (ext.): NC_004718
- - SARS2: NC_045512 / MN908947.3 
-- RSV: NC_001803
-- Rhinovirus: NC_001617
-- Adenovirus: NC_044935
-- Parainfluenza: NC_075446
-- Parvovirus: NC_075988
-- Measles virus: OK424761
-- Hantavirus: AF291704
-- Norovirus: AB039774
-- Marburg Virus: AY430365
-- Ebola Virus: AF086833
+# Common Virus Sequences
+Norovirus	AB039774
+Ebola Virus	AF086833
+Hantavirus	AF291704
+Marburg Virus	AY430365
+RSV	NC_001803
+Influenza B	NC_002205
+HCoV-229E	NC_002645
+SARS-CoV(-1)	NC_004718
+HCoV-NL63	NC_005831
+HCoV-OC43	NC_006213
+Influenza C	NC_006306
+HCoV-HKU1	NC_006577
+Influenza A	NC_026431
+Influenza D	NC_036615
+Rhinovirus	NC_001617
+Adenovirus	NC_044935
+SARS-CoV-2	NC_045512
+Parainfluenza	NC_075446
+Parvovirus	NC_075988
+Measles virus	OK424761
+HIV-1	NC_001802
+HIV-2	NC_001722
+Poliovirus 1	OQ286203
+HPV (16)	NC_001526
+Hepatitis A	NC_008250
+Hepatitis B	NC_003977
+Hepatitis C	NC_038882
 
 See folder: `reference_genomes`
 downloaded via: `curl 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&rettype=fasta&id=NC_038311' > NC_038311.fa`

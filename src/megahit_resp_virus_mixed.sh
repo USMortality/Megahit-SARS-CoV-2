@@ -1,5 +1,6 @@
 #!/bin/bash
 
+mkdir -p out
 rm -rf out/*
 
 for f in ./reference_genomes/*.fa; do
@@ -22,6 +23,8 @@ for f in ./reference_genomes/*.fa; do
   name=$(basename $f .fa)
   srr="SRR00000001"
 
+  echo "----------------------------------------------------------------------"
+  echo "$f"
   #  Align reads
   ./src/align.sh -s ${srr} -g ${name} -a bwa &>./out/align.log
   echo "BWA Alignment: $(cat out/align.log | tail -n2 | head -n1)"
