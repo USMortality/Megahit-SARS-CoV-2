@@ -18,9 +18,10 @@ const ERR_RATE = args.e || args.error || 0.01
 
 // Config
 const N_LEN = 29903
-const MIN_LEN = 50
-const MAX_LEN = 150
-const READ_LEN = MAX_LEN - MIN_LEN // 100
+const INSERT_MIN_LEN = 300
+const INSERT_MAX_LEN = 500
+const INSERT_SIZE = INSERT_MAX_LEN - INSERT_MIN_LEN // 100
+const READ_LEN = 150
 const GENOME_NAME = `Random Test Genome: ${GENOME_ID}`
 
 // Use a seeded random, to ensure the genome remains identical.
@@ -33,7 +34,7 @@ const replaceAt = (str: string, index: number, replacement: string) => {
 
 const generateGenome = () => {
   let result = [`>${GENOME_ID} ${GENOME_NAME}`]
-  result.push(randomSequence(N_LEN, rnd()))
+  result.push(randomSequence(N_LEN, rnd))
   return result
 }
 
@@ -63,15 +64,15 @@ const generateReads = async (genome: string) => {
   try { await fs.unlink(file2) } catch (e) { }
 
   const genomes = replicateString(genome, N_ORGANISMS)
-  const fragmentedGenomes = fragmentStr(genomes, READ_LEN)
+  const fragmentedGenomes = fragmentStr(genomes, INSERT_SIZE)
 
   bar.start(fragmentedGenomes.length, 0);
 
   for (let i = 0; i < fragmentedGenomes.length; i++) {
     const target = fragmentedGenomes[i]
-    if (target.length < MIN_LEN || target.length > MAX_LEN) continue
+    if (target.length < INSERT_MIN_LEN || target.length > INSERT_MAX_LEN) continue
     // Forward Read
-    const read1 = maybeScrambleRead(target)
+    const read1 = maybeScrambleRead(target).slice(0, READ_LEN)
     const result1: string[] = []
     result1.push(`@${SRA_ID}_0:0:0_1:0:0_${i + 1}/1`)
     result1.push(read1)
@@ -80,7 +81,7 @@ const generateReads = async (genome: string) => {
     await fs.appendFile(file1, result1.join('\n') + '\n')
 
     // Reverse Read
-    const read2 = maybeScrambleRead(reverseString(target))
+    const read2 = maybeScrambleRead(reverseString(target)).slice(0, READ_LEN)
     const result2: string[] = []
     result2.push(`@${SRA_ID}_0:0:0_1:0:0_${i + 1}/2`)
     result2.push(reverseComplement(read2))

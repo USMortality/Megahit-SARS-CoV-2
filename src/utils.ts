@@ -1,10 +1,10 @@
 export const ALPHABET = ['A', 'C', 'G', 'T']
 const REV_ALPHABET = ['T', 'G', 'C', 'A']
 
-export const randomSequence = (len: number, rnd: number | undefined = undefined) => {
+export const randomSequence = (len: number, rnd: (() => number) | undefined = undefined) => {
   let seq = ''
   for (let i = 0; i < len; i++) {
-    const rnd_idx = Math.floor((rnd ? rnd : Math.random()) * 4)
+    const rnd_idx = Math.floor((rnd ? rnd() : Math.random()) * 4)
     seq += ALPHABET[rnd_idx]
   }
   return seq
