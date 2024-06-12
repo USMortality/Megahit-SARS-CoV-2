@@ -104,6 +104,7 @@ Influenza A	NC_026431
 Rhinovirus	NC_001617
 Adenovirus	NC_044935
 SARS-CoV-2	NC_045512
+SARS-CoV-2 (JN.1) PP785598.1
 Parainfluenza	NC_075446
 Parvovirus	NC_075988
 Measles virus	OK424761
