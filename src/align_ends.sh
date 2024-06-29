@@ -1,100 +1,97 @@
 #!/bin/bash
 
-GENOME="MN908947.3" # Wuhan-Hu-1 / SARS-CoV-2
-SRR="SRR10971381"   # Wu et al. 2020
-MAX_MISMATCHES=3    # Set to 3 for allowing up to 3 mismatches
-MAX_TRIM=10
+# Visualization Functions
+cohl() (
+  awk 'NR==1 {split($0, a, ""); next}
+   	{split($0, b, ""); for(i=1; i<=length(b); i++)
+    printf "%s", (b[i] == a[i] ? b[i] : "\033[31m" b[i] "\033[0m");
+    print ""}' "$@"
+)
 
-if ! test -f "${GENOME}.fa"; then
-  echo "Downloading target genome..."
-  curl -o "${GENOME}.fa" "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&rettype=fasta&id=${GENOME}"
-fi
+alir() (
+  awk '{a[NR]=$0; if(length($0) > l) l=length($0)}
+   	END {for(i=1; i<=NR; i++) printf "%" l "s\n", a[i]}' "$@"
+)
 
-# Download SARS-CoV-2 contigs
-# Convert SRA format data to fastq format
-if ! [ -f "${SRR}_1.fastq" ]; then
-  fasterq-dump --progress ${SRR}
-fi
+cohl0() (
+  x=$(cat)
+  paste -d' ' <(seqkit seq -n <<<"$x" | alir) <(seqkit seq -s <<<"$x" |
+    sed 1p | cohl)
+)
 
-# Get the maximum number of threads available on the machine minus one
-threads=$(($(nproc) - 1))
+# Function to process data for a given study
+process_study() {
+  local bam_file=$1
+  local fastq_files=$2
+  local Q=$3
 
-# Create output directory
-output_dir="filtered_reads"
-mkdir -p $output_dir
+  # Align:
+  minimap2 -a -Y --sam-hit-only MN908947.3.fa $fastq_files |
+    samtools sort -@7 - >$bam_file
 
-# Function to process trimming and alignment
-process_reads() {
-  local trim_length=$1
-  local ref_genome=$2
+  # Filter HQ Reads:
+  samtools view -h $bam_file |
+    gawk '/^@/ || ($6 ~ /^([0-9]S)?[0-9]+M([0-9]S)?$/ && $6 !~ /I/ &&
+      $6 !~ /D/) {print}' |
+    gawk 'NR==FNR{a[NR]=$0;next}{match($0,/NM:i:([0-9]+)/,m)}
+      m[1]<=a[length($10)]' \
+      <(Rscript --no-init-file -e \
+        "cat(qbinom(.95, 1:1e4, 10^(${Q}/-10)), sep='\\n')") - \
+      >${bam_file%.sam}.hq.sam
 
-  echo "Trimming reads by $trim_length nucleotides from both ends"
-  seqtk trimfq -b $trim_length -e $trim_length ${SRR}_1.fastq >trimmed_${SRR}_1.fastq
-  seqtk trimfq -b $trim_length -e $trim_length ${SRR}_2.fastq >trimmed_${SRR}_2.fastq
+  # Visualize Reads at the start
+  echo "All Reads:"
+  visualize_reads_start $bam_file
+  echo "HQ Reads:"
+  visualize_reads_start ${bam_file%.sam}.hq.sam "HQ"
 
-  # Verify the trimmed files
-  if [ ! -s trimmed_${SRR}_1.fastq ] || [ ! -s trimmed_${SRR}_2.fastq ]; then
-    echo "Error: Trimmed fastq files were not created successfully."
-    exit 1
-  fi
-
-  echo "Aligning the trimmed reads to the reference genome"
-  bwa mem -t $threads $ref_genome trimmed_${SRR}_1.fastq trimmed_${SRR}_2.fastq >aligned_reads.sam
-
-  # Verify the aligned reads file
-  if [ ! -s aligned_reads.sam ]; then
-    echo "Error: aligned_reads.sam was not created successfully."
-    exit 1
-  fi
-
-  echo "Converting and sorting the SAM file to BAM"
-  samtools view -@ $threads -bS aligned_reads.sam | samtools sort -@ $threads -o aligned_reads_sorted.bam -
-
-  # Verify the sorted BAM file
-  if [ ! -s aligned_reads_sorted.bam ]; then
-    echo "Error: aligned_reads_sorted.bam was not created successfully."
-    exit 1
-  fi
-
-  echo "Filtering reads that align to the start of the reference genome with up to $MAX_MISMATCHES mismatches"
-  output_file="$output_dir/start_aligned_reads_trim_${trim_length}_mismatches_${MAX_MISMATCHES}.sam"
-  if [ "$MAX_MISMATCHES" -eq 0 ]; then
-    samtools view -@ $threads aligned_reads_sorted.bam | awk '$4 == 1 && $6 ~ /^[0-9]+M$/' >$output_file
-  else
-    samtools view -@ $threads aligned_reads_sorted.bam | awk -v max_mismatches=$MAX_MISMATCHES '$4 == 1 && $6 ~ /^[0-9]+M$/ && $0 ~ "NM:i:" && substr($0, index($0, "NM:i:") + 5, 1) <= max_mismatches' >$output_file
-  fi
-
-  # Count the reads that align to the start
-  start_count=0
-  if [ -s $output_file ]; then
-    start_count=$(wc -l <$output_file)
-  fi
-
-  # Store the results in the array
-  start_results[$trim_length]=$start_count
-
-  echo "Results for trimming $trim_length nucleotides: Start alignments with up to $MAX_MISMATCHES mismatches: $start_count"
+  # Visualize Reads at the end
+  echo "All Reads:"
+  visualize_reads_end $bam_file
+  echo "HQ Reads:"
+  visualize_reads_end ${bam_file%.sam}.hq.sam "HQ"
 }
 
-# Main script execution
-ref_genome="${GENOME}.fa"
+# Function to visualize reads at the start
+visualize_reads_start() {
+  local sam_file=$1
+  local prefix=$2
+  local output_prefix=${prefix:+${prefix}_}
 
-# Step 1: Index the reference genome
-echo "Step 1: Indexing the reference genome"
-bwa index $ref_genome
+  local start
+  start=$(samtools view ${sam_file} | head -n1 | awk '{print $4}')
+  echo "First match at position: ${start}"
+  # All
+  samtools view $sam_file | awk -v start="$start" '$4 == start' |
+    cut -f1,6,10 | cut -d. -f2 | sed $'s/\t/:/' | seqkit tab2fx |
+    cat <(cut -d, -f1 MN908947.3.fa | sed 's/ .*//') - |
+    seqkit subseq -r1:60 | mafft --quiet - | cohl0
+}
 
-# Initialize array to store the results
-declare -a start_results
+# Function to visualize reads at the end
+visualize_reads_end() {
+  local sam_file=$1
+  local prefix=$2
+  local output_prefix=${prefix:+${prefix}_}
 
-# Step 2: Loop over trimming lengths
-for trim_length in $(seq 0 $MAX_TRIM); do
-  process_reads $trim_length $ref_genome
-done
+  # All
+  bedtools bamtobed -i $sam_file | sort -k3,3nr | head -n30 |
+    awk 'NR<=10 {print $4}' >top_ids.txt
+  samtools view $sam_file | grep -F -w -f top_ids.txt | cut -f1,6,10 |
+    sed 's/\t/:/' | seqkit tab2fx 2>/dev/null |
+    cat <(seqkit subseq -r -200:-1 MN908947.3.fa 2>/dev/null |
+      sed 's/ .*//') - | mafft --quiet - |
+    seqkit subseq -r -180:-1 2>/dev/null | cohl0
+}
 
-# Print the overall results
-echo "Overall results:"
-for trim_length in $(seq 0 $MAX_TRIM); do
-  echo "Trim length $trim_length: Start alignments with up to $MAX_MISMATCHES mismatches: ${start_results[$trim_length]}"
-done
+# echo "### Wu et al., 2020"
+# process_study "wu.bam" "SRR10971381_1.fastq SRR10971381_2.fastq" 31
 
-echo "Filtered reads are saved in the '$output_dir' directory."
+echo "### Kim et al., 2020"
+process_study "kim.bam" "VeroInf24h.all.fastq" 21
+
+echo "### Moreno et al., 2022"
+process_study "moreno.bam" "SRR11140745.fastq" 21
+
+# echo "### PacBio, 2021"
+# process_study "pacbio.bam" "hifi_reads.fastq" 33

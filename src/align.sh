@@ -120,7 +120,7 @@ fi
 
 if ! test -f "${SRA}_1.fastq.gz"; then
   echo "Analyzing reads.."
-  parallel-fastq-dump --gzip --threads $N_THREADS --split-files --sra-id "$SRA"
+  fasterq-dump --threads $N_THREADS --split-files "$SRA"
 fi
 
 if ! test -f "${GENOME}.fa"; then

@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# # Install necessary tools
-# sudo apt-get install mafft samtools seqtk
-
 # # Download the reference genome
 # wget https://www.ncbi.nlm.nih.gov/nuccore/MN908947.3 -O MN908947.3.fa
 
